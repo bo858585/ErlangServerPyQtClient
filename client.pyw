@@ -2,19 +2,18 @@
 #coding=utf-8
 
 HOST = 'localhost'    # The remote host
-PORT = 43429          # The same port as used by the server
+PORT = 43430          # The same port as used by the server
 
 import socket
 import sys
-from PyQt4 import QtGui, QtCore
-from erlport import Port, Protocol
+from PyQt4 import QtGui,QtCore
 
-class ClientWindow(QtGui.QWidget, Protocol):
+class ClientWindow(QtGui.QWidget):
     """
-        Main client window class with tcp protocol for send/receive messages
+        Main client window
     """
 
-    def __init__(self, parent=None, socket = None):
+    def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
         self.setFixedSize(300, 300)
@@ -42,14 +41,20 @@ class ClientWindow(QtGui.QWidget, Protocol):
 
     def send_text(self):
         """
-        Get text from edit box, add space to text, send text to server, 
-        receive response, remove space and put text to label.
+        Connect to server port, get text from edit box, add space to text, send text to server, 
+        receive response, remove space and put text to label, close connection.
         Space need for situation when text in edit box is empty.
         """
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((HOST, PORT))
+
         sen =  self.edit.text()
         sen = sen + ' '
         s.send(sen)
         rec = s.recv(1024).decode("utf-32")
+        
+        s.close()
+
         rec = rec[0:-1]
         self.label.setText(rec)
 
@@ -62,11 +67,9 @@ class ClientWindow(QtGui.QWidget, Protocol):
 
 if __name__ == "__main__":
     """
-    Connect to socket and run gui
+    Run gui
     """
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.connect((HOST, PORT))
     app = QtGui.QApplication(sys.argv)
-    qb = ClientWindow(socket = s)
+    qb = ClientWindow()
     qb.show()
     sys.exit(app.exec_())
