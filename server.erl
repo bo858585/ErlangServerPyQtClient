@@ -2,7 +2,7 @@
 
 -export([start/0, loop0/1, proc_client/1,stop/0]).
 
--define(PORTNO, 43429).
+-define(PORTNO, 43430).
 
 start() ->
     start(?PORTNO).
@@ -13,6 +13,7 @@ start(Pno) ->
 stop()->
     exit(erlang:whereis(server),user_reason).
 
+%listen port
 loop0(Port) ->
     case gen_tcp:listen(Port, [binary, {packet, 0}, {active, false}]) of
         {ok, LSock} ->
@@ -23,6 +24,7 @@ loop0(Port) ->
             stop
     end.
 
+%mainloop
 loop(Listen) ->
     case gen_tcp:accept(Listen) of
         {ok, S} ->
@@ -33,6 +35,7 @@ loop(Listen) ->
             loop(Listen)
     end.
 
+%receive and send message
 proc_client(Client) ->
     case gen_tcp:recv(Client, 0) of
         {ok, R_ret} ->
