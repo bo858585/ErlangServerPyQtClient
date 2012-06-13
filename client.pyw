@@ -1,0 +1,65 @@
+#! /usr/bin/env python2.7
+#coding=utf-8
+
+# Echo client program
+import socket
+
+HOST = 'localhost'    # The remote host
+PORT = 54400              # The same port as used by the server
+
+import sys
+from PyQt4 import QtGui, QtCore
+
+from erlport import Port, Protocol
+
+import time
+
+from erlport import Atom
+  
+s = None
+  
+class ClientWindow(QtGui.QWidget, Protocol):
+    """
+        Main window class
+    """
+
+    def __init__(self, parent=None, ):
+        QtGui.QWidget.__init__(self, parent)
+
+        self.setGeometry(300, 300, 300, 300)
+        self.setWindowTitle('Client')
+
+        #Edit
+        self.edit = QtGui.QLineEdit("edit", self)
+        self.edit.setAlignment(QtCore.Qt.AlignCenter)
+        self.edit.setGeometry(90, 0, 140, 35)       
+
+        #Text field label
+        self.label = QtGui.QLabel("No data", self)
+        self.label.setAlignment(QtCore.Qt.AlignLeft)
+        self.label.setGeometry(0, 60, 140, 35)
+
+        #Send to server button
+        self.send_to_server = QtGui.QPushButton('Send to server', self)
+        self.send_to_server.setGeometry(160, 60, 140, 35)
+        self.connect(self.send_to_server, QtCore.SIGNAL('clicked()'), self.send_text)
+        
+        #Exit button
+        quit = QtGui.QPushButton('Exit', self)
+        quit.setGeometry(100, 200, 60, 35)
+        self.connect(quit, QtCore.SIGNAL('clicked()'), QtGui.qApp,  QtCore.SLOT('quit()'))
+
+    def send_text(self):
+        sen =  self.edit.text()
+        self.label.setText(sen)
+        s.send(sen)
+        rec = s.recv(1024).decode("utf-32")
+        self.label.setText(rec)
+
+if __name__ == "__main__":
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((HOST, PORT))
+    app = QtGui.QApplication(sys.argv)
+    qb = ClientWindow()
+    qb.show()
+    sys.exit(app.exec_())
