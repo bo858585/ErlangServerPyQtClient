@@ -2,7 +2,7 @@
 #coding=utf-8
 
 HOST = 'localhost'    # The remote host
-PORT = 54400          # The same port as used by the server
+PORT = 43429          # The same port as used by the server
 
 import socket
 import sys
@@ -36,9 +36,9 @@ class ClientWindow(QtGui.QWidget, Protocol):
         self.connect(self.send_to_server, QtCore.SIGNAL('clicked()'), self.send_text)
         
         #Exit button
-        quit = QtGui.QPushButton('Exit', self)
-        quit.setGeometry(100, 200, 60, 35)
-        self.connect(quit, QtCore.SIGNAL('clicked()'), QtGui.qApp,  QtCore.SLOT('quit()'))
+        self.quit = QtGui.QPushButton('Exit', self)
+        self.quit.setGeometry(100, 200, 60, 35)
+        self.connect(self.quit, QtCore.SIGNAL('clicked()'), self.send_stop)
 
     def send_text(self):
         """
@@ -51,9 +51,14 @@ class ClientWindow(QtGui.QWidget, Protocol):
         s.send(sen)
         rec = s.recv(1024).decode("utf-32")
         rec = rec[0:-1]
-        if rec == '':
-            print 'sd'
         self.label.setText(rec)
+
+    def send_stop(self):
+        """
+            
+        """
+        exit(0)
+        
 
 if __name__ == "__main__":
     """
