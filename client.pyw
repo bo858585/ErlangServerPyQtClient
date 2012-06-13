@@ -1,36 +1,27 @@
 #! /usr/bin/env python2.7
 #coding=utf-8
 
-# Echo client program
-import socket
-
 HOST = 'localhost'    # The remote host
-PORT = 54400              # The same port as used by the server
+PORT = 54400          # The same port as used by the server
 
+import socket
 import sys
 from PyQt4 import QtGui, QtCore
-
 from erlport import Port, Protocol
 
-import time
-
-from erlport import Atom
-  
-s = None
-  
 class ClientWindow(QtGui.QWidget, Protocol):
     """
-        Main window class
+        Main client window class with tcp protocol
     """
 
-    def __init__(self, parent=None, ):
+    def __init__(self, parent=None, socket = None):
         QtGui.QWidget.__init__(self, parent)
 
         self.setGeometry(300, 300, 300, 300)
         self.setWindowTitle('Client')
 
-        #Edit
-        self.edit = QtGui.QLineEdit("edit", self)
+        #EditBox
+        self.edit = QtGui.QLineEdit("Edit", self)
         self.edit.setAlignment(QtCore.Qt.AlignCenter)
         self.edit.setGeometry(90, 0, 140, 35)       
 
@@ -50,6 +41,9 @@ class ClientWindow(QtGui.QWidget, Protocol):
         self.connect(quit, QtCore.SIGNAL('clicked()'), QtGui.qApp,  QtCore.SLOT('quit()'))
 
     def send_text(self):
+    """
+    Send text to server, receive response, and put it to label
+    """
         sen =  self.edit.text()
         self.label.setText(sen)
         s.send(sen)
@@ -57,9 +51,12 @@ class ClientWindow(QtGui.QWidget, Protocol):
         self.label.setText(rec)
 
 if __name__ == "__main__":
+    """
+    Connect to socket and run gui
+    """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((HOST, PORT))
     app = QtGui.QApplication(sys.argv)
-    qb = ClientWindow()
+    qb = ClientWindow(socket = s)
     qb.show()
     sys.exit(app.exec_())
