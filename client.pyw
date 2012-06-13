@@ -11,13 +11,13 @@ from erlport import Port, Protocol
 
 class ClientWindow(QtGui.QWidget, Protocol):
     """
-        Main client window class with tcp protocol
+        Main client window class with tcp protocol for send/receive messages
     """
 
     def __init__(self, parent=None, socket = None):
         QtGui.QWidget.__init__(self, parent)
 
-        self.setGeometry(300, 300, 300, 300)
+        self.setFixedSize(300, 300)
         self.setWindowTitle('Client')
 
         #EditBox
@@ -41,13 +41,18 @@ class ClientWindow(QtGui.QWidget, Protocol):
         self.connect(quit, QtCore.SIGNAL('clicked()'), QtGui.qApp,  QtCore.SLOT('quit()'))
 
     def send_text(self):
-    """
-    Send text to server, receive response, and put it to label
-    """
+        """
+        Get text from edit box, add space to text, send text to server, 
+        receive response, remove space and put text to label.
+        Space need for situation when text in edit box is empty.
+        """
         sen =  self.edit.text()
-        self.label.setText(sen)
+        sen = sen + ' '
         s.send(sen)
         rec = s.recv(1024).decode("utf-32")
+        rec = rec[0:-1]
+        if rec == '':
+            print 'sd'
         self.label.setText(rec)
 
 if __name__ == "__main__":
