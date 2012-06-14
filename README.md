@@ -18,7 +18,7 @@ http://problemssol.blogspot.com/2010/12/compile-and-install-pyqt4-for-python27.h
 
 sudo apt-get install erlang
 
-2) Install lib for communicate between python client and erlang server:
+3) Install lib for communicate between python client and erlang server:
 
 sudo easy_install erlport
 
