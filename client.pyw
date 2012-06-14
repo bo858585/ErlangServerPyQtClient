@@ -2,7 +2,7 @@
 #coding=utf-8
 
 HOST = 'localhost'    # The remote host
-PORT = 43430          # The same port as used by the server
+PORT = 7001          # The same port as used by the server
 
 import socket
 import sys
@@ -39,36 +39,48 @@ class ClientWindow(QtGui.QWidget):
         self.quit.setGeometry(100, 200, 60, 35)
         self.connect(self.quit, QtCore.SIGNAL('clicked()'), self.send_stop)
 
-    def send_text(self):
+    def open_connection(self):
         """
-        Connect to server port, get text from edit box, add space to text, send text to server, 
-        receive response, remove space and put text to label, close connection.
-        Space need for situation when text in edit box is empty.
+        Connect to server socket.
         """
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.connect((HOST, PORT))
+        return s
 
-        sen =  self.edit.text()
-        sen = sen + ' '
-        s.send(sen)
-        rec = s.recv(1024).decode("utf-32")
-        
-        s.close()
-
-        rec = rec[0:-1]
-        self.label.setText(rec)
+    def send_text(self):
+        """
+        Connect to server port, get text from edit box, add mark 'text:' to text, send text to server, 
+        receive response, remove mark 'text:' and put text to label, close connection.
+        """
+        send_data =  self.edit.text()
+        send_data = 'text:' + send_data        
+        c = self.open_connection()
+        c.send(send_data)
+        received_data = c.recv(1024).decode("utf-32")        
+        c.close()
+        received_data = received_data[5:]
+        self.label.setText(received_data)
 
     def send_stop(self):
         """
-            
+        Send stop message to server.
         """
-        exit(0)
-        
+        command = 'stop'      
+        c = self.open_connection()
+        c.send(command)
+        c.close()
+        exit(0)        
 
 if __name__ == "__main__":
     """
     Run gui
     """
+    if len(sys.argv) != 2:
+        print 'Usase python client.pyw PortForConnectToServer'
+        exit(1)
+
+    PORT = int(sys.argv[1])
+
     app = QtGui.QApplication(sys.argv)
     qb = ClientWindow()
     qb.show()
