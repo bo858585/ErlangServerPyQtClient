@@ -4,7 +4,7 @@
 
 -define(PORTNO, 43441).
 
-start(Port) ->
+start() ->
     start(?PORTNO).
 
 start(Pno) ->
