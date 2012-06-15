@@ -44,36 +44,52 @@ class ClientWindow(QtGui.QWidget):
         """
         Connect to server socket.
         """
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.connect((HOST, PORT))
-        return s
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((HOST, PORT))
+        except Exception, e:
+            print 'Can not connect to server at', HOST, PORT
+            return None
+        else:
+            return s
 
     def send_text(self):
         """
         Connect to server port, get text from edit box, add mark 'text:' to text, send text to server, 
         receive response, remove mark 'text:' and put text to label, close connection.
         """
-        send_data =  self.edit.text()
-        send_data = "text:" + send_data
-        c = self.open_connection()
-        c.send(send_data)
-        print send_data
-        received_data = c.recv(1024).decode("utf-32")
-        print received_data
-        c.close()
-        received_data = received_data[5:]
-        self.label.setText(received_data)
-
+        try:
+            send_data =  self.edit.text()
+	    send_data = "text:" + send_data
+            c = self.open_connection()
+            if c == None:
+                return
+	    c.send(send_data)
+	    print send_data
+	    received_data = c.recv(1024).decode("utf-32")
+	    print received_data
+	    c.close()
+	    received_data = received_data[5:]
+	    self.label.setText(received_data)
+        except Exception, e:
+            print 'Error when send text:', str(e)
+            exit(1)
+            
     def send_stop(self):
         """
         Send stop message to server.
         """
-        command = Atom("stop")
-        print command
-        c = self.open_connection()
-        c.send(command)
-        c.close()
-        exit(0)        
+        try:
+            command = Atom("stop")
+            print command
+            c = self.open_connection()
+            if c != None:                
+                c.send(command)
+                c.close()
+            exit(0)        
+        except Exception, e:
+            print 'Error when send stop command to server:', str(e)
+            exit(1)
 
 if __name__ == "__main__":
     """
