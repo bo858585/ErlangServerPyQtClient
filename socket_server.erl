@@ -1,4 +1,4 @@
-% Íåáëîêèðóþùèé (àñèíõðîííûé) ñåðâåð
+% ÐÐµÐ±Ð»Ð¾ÐºÐ¸Ñ€ÑƒÑŽÑ‰Ð¸Ð¹ (Ð°ÑÐ¸Ð½Ñ…Ñ€Ð¾Ð½Ð½Ñ‹Ð¹) ÑÐµÑ€Ð²ÐµÑ€
 
 -module(socket_server).
 -behavior(gen_server).
@@ -6,6 +6,8 @@
 -export([init/1, code_change/3, handle_call/3, handle_cast/2, handle_info/2, terminate/2]).
 -export([accept_loop/1]).
 -export([start/3]).
+-export([stop/0]).
+
 
 -define(TCP_OPTIONS, [binary, {packet, 0}, {active, false}, {reuseaddr, true}]).
 
@@ -19,8 +21,11 @@ start(Name, Port, Loop) ->
     State = #server_state{port = Port, loop = Loop},
     gen_server:start_link({local, Name}, ?MODULE, State, []).
 
+stop() ->
+   gen_server:cast(socket_server, stop).
+
 init(State = #server_state{port=Port}) ->
-    % Ñëóøàåì ïîðò
+    % Ð¡Ð»ÑƒÑˆÐ°ÐµÐ¼ Ð¿Ð¾Ñ€Ñ‚
     case gen_tcp:listen(Port, ?TCP_OPTIONS) of
         {ok, LSocket} ->
             NewState = State#server_state{lsocket = LSocket},
@@ -34,18 +39,25 @@ handle_cast({accepted, _Pid}, State=#server_state{}) ->
 
 accept_loop({Server, LSocket, {M, F}}) ->
     {ok, Socket} = gen_tcp:accept(LSocket),
-    % Ïðîñèì ãëàâíûé ïðîöåññ ñîçäàòü íîâîãî "ñëóøàòåëÿ" è âûçûâàåì öèêë îáðàáîòêè äàííûõ,
-    % ÷òîáû èçáåæàòü áëîêèðîâêè  
+    % ÐŸÑ€Ð¾ÑÐ¸Ð¼ Ð³Ð»Ð°Ð²Ð½Ñ‹Ð¹ Ð¿Ñ€Ð¾Ñ†ÐµÑÑ ÑÐ¾Ð·Ð´Ð°Ñ‚ÑŒ Ð½Ð¾Ð²Ð¾Ð³Ð¾ "ÑÐ»ÑƒÑˆÐ°Ñ‚ÐµÐ»Ñ" Ð¸ Ð²Ñ‹Ð·Ñ‹Ð²Ð°ÐµÐ¼ Ñ†Ð¸ÐºÐ» Ð¾Ð±Ñ€Ð°Ð±Ð¾Ñ‚ÐºÐ¸ Ð´Ð°Ð½Ð½Ñ‹Ñ…,
+    % Ñ‡Ñ‚Ð¾Ð±Ñ‹ Ð¸Ð·Ð±ÐµÐ¶Ð°Ñ‚ÑŒ Ð±Ð»Ð¾ÐºÐ¸Ñ€Ð¾Ð²ÐºÐ¸  
     gen_server:cast(Server, {accepted, self()}),
+    % Ð—Ð°Ð¿ÑƒÑÐºÐ°ÐµÐ¼ Ñ†Ð¸ÐºÐ» Ð¿Ñ€Ð¸ÐµÐ¼Ð°-Ð¿ÐµÑ€ÐµÐ´Ð°Ñ‡Ð¸ ÑÐ¾Ð¾Ð±Ñ‰ÐµÐ½Ð¸Ð¹
     M:F(Socket).
     
-% Äëÿ áîëüøåé áåçîïàñíîñòè ìû äîëæíû èñïîëüçîâàòü spawn_link è îáðàáàòûâàòü îøèáêè
+% Ð”Ð»Ñ Ð±Ð¾Ð»ÑŒÑˆÐµÐ¹ Ð±ÐµÐ·Ð¾Ð¿Ð°ÑÐ½Ð¾ÑÑ‚Ð¸ Ð¼Ñ‹ Ð´Ð¾Ð»Ð¶Ð½Ñ‹ Ð¸ÑÐ¿Ð¾Ð»ÑŒÐ·Ð¾Ð²Ð°Ñ‚ÑŒ spawn_link Ð¸ Ð¾Ð±Ñ€Ð°Ð±Ð°Ñ‚Ñ‹Ð²Ð°Ñ‚ÑŒ Ð¾ÑˆÐ¸Ð±ÐºÐ¸
 accept(State = #server_state{lsocket=LSocket, loop = Loop}) ->
     proc_lib:spawn(?MODULE, accept_loop, [{self(), LSocket, Loop}]),
     State.
 
-% Ýòî çäåñü òîëüêî äëÿ òîãî ÷òîáû ñêðûòü ïðåäóïðåæäåíèÿ
+% Ð­Ñ‚Ð¾ Ð·Ð´ÐµÑÑŒ Ñ‚Ð¾Ð»ÑŒÐºÐ¾ Ð´Ð»Ñ Ñ‚Ð¾Ð³Ð¾ Ñ‡Ñ‚Ð¾Ð±Ñ‹ ÑÐºÑ€Ñ‹Ñ‚ÑŒ Ð¿Ñ€ÐµÐ´ÑƒÐ¿Ñ€ÐµÐ¶Ð´ÐµÐ½Ð¸Ñ
 handle_call(_Msg, _Caller, State) -> {noreply, State}.
 handle_info(_Msg, Library) -> {noreply, Library}.
-terminate(_Reason, _Library) -> ok.
+terminate(_Reason, _Library) -> 
+    io:format("Stop server~n",[]), 
+    exit("Client said stop."), 
+    io:format("Stop2 server~n",[]), 
+    stop(),
+    io:format("Stop server3~n",[]).
+
 code_change(_OldVersion, Library, _Extra) -> {ok, Library}.
