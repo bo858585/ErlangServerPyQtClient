@@ -7,6 +7,7 @@ PORT = 7001          # The same port as used by the server
 import socket
 import sys
 from PyQt4 import QtGui,QtCore
+from erlport.erlterms import Atom
 
 class ClientWindow(QtGui.QWidget):
     """
@@ -53,10 +54,12 @@ class ClientWindow(QtGui.QWidget):
         receive response, remove mark 'text:' and put text to label, close connection.
         """
         send_data =  self.edit.text()
-        send_data = 'text:' + send_data        
+        send_data = "text:" + send_data
         c = self.open_connection()
         c.send(send_data)
-        received_data = c.recv(1024).decode("utf-32")        
+        print send_data
+        received_data = c.recv(1024).decode("utf-32")
+        print received_data
         c.close()
         received_data = received_data[5:]
         self.label.setText(received_data)
@@ -65,7 +68,8 @@ class ClientWindow(QtGui.QWidget):
         """
         Send stop message to server.
         """
-        command = 'stop'      
+        command = Atom("stop")
+        print command
         c = self.open_connection()
         c.send(command)
         c.close()
