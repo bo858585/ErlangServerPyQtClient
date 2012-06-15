@@ -2,9 +2,9 @@
 
 -export([start/0, loop0/1, proc_client/1,stop/0]).
 
--define(PORTNO, 43430).
+-define(PORTNO, 43441).
 
-start() ->
+start(Port) ->
     start(?PORTNO).
 
 start(Pno) ->
@@ -28,7 +28,7 @@ loop0(Port) ->
 loop(Listen) ->
     case gen_tcp:accept(Listen) of
         {ok, S} ->
-            io:format("Acepted~n",[]),
+            io:format("Acepted~n",[]),    	      
             spawn(?MODULE, proc_client, [S]),
         loop(Listen);
         _ ->
@@ -38,6 +38,9 @@ loop(Listen) ->
 %receive and send message
 proc_client(Client) ->
     case gen_tcp:recv(Client, 0) of
+        {ok, <<"stop">>} ->
+            io:format("Server : Recieved stop message~n",[]),
+            stop();
         {ok, R_ret} ->
             io:format("Server : Recieved ~p~n",[R_ret]),
             gen_tcp:send(Client, R_ret),
