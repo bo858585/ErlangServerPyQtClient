@@ -40,6 +40,7 @@ proc_client(Client) ->
     case gen_tcp:recv(Client, 0) of
         {ok, <<"stop">>} ->
             io:format("Server : Recieved stop message~n",[]),
+            gen_tcp:close(Client),
             stop();
         {ok, R_ret} ->
             io:format("Server : Recieved ~p~n",[R_ret]),
