@@ -22,7 +22,8 @@ start(Name, Port, Loop) ->
     gen_server:start_link({local, Name}, ?MODULE, State, []).
 
 stop() ->
-   gen_server:cast(socket_server, stop).
+   exit(erlang:whereis(server),user_reason).
+   %gen_server:cast(socket_server, stop).
 
 init(State = #server_state{port=Port}) ->
     % Слушаем порт
